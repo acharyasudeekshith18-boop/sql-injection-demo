@@ -2,13 +2,13 @@
 
 A tiny, self-contained Python 3 + SQLite simulation for learning **why string-built SQL is dangerous** and how **parameterized queries** prevent this kind of injection. It compares a deliberately vulnerable toy login against a fixed login using the *same* input.
 
-### ▶ [Live interactive preview](https://acharyasudeekshith18-boop.github.io/sql-injection-demo/)
+### ▶ [Try the live login simulator](https://acharyasudeekshith18-boop.github.io/sql-injection-demo/)
 
-**[https://acharyasudeekshith18-boop.github.io/sql-injection-demo/](https://acharyasudeekshith18-boop.github.io/sql-injection-demo/)**: open it on your phone or laptop and tap **Normal login**, **Wrong password** or **Injection attempt** to compare both login checks side by side. No typing, no setup.
+**[https://acharyasudeekshith18-boop.github.io/sql-injection-demo/](https://acharyasudeekshith18-boop.github.io/sql-injection-demo/)**: a hands-on toy login lab. Type any username and password, press **Log in to both**, and see what a vulnerable login and a parameterized login do with *your* input, side by side: the verdict, the exact query SQLite received (with your text highlighted and ignored parts struck through), and a short explanation of what the database did. One-tap examples and a reset button are included. Works on phone and desktop.
 
-[![Live preview: the injection attempt is accepted by the vulnerable login and denied by the parameterized login](docs/screenshots/preview-injection.png)](https://acharyasudeekshith18-boop.github.io/sql-injection-demo/)
+[![The login simulator: an injection typed into the username box is accepted by the vulnerable login and denied by the parameterized login](docs/screenshots/lab-desktop-injection.png)](https://acharyasudeekshith18-boop.github.io/sql-injection-demo/)
 
-> The preview is a **safe, client-side visualization** of this Python/SQLite CLI project, written in plain JavaScript and hosted on GitHub Pages. It does **not** run the Python code in your browser, has no server or real database, and uses the same two fictional users. The tested original is the Python program below. A small JavaScript re-implementation of the query check drives the page, and its results match `sqli_demo` for all three scenarios.
+> **Fictional demo only. Don't enter real passwords.** The simulator runs **real SQLite in your browser** ([sql.js](https://github.com/sql-js/sql.js), SQLite compiled to WebAssembly, bundled in [`docs/vendor/`](docs/vendor/)). It builds the same two-user table as `sqli_demo/database.py` fresh for every attempt, runs the same string-built query as `vulnerable_login` and the same prepared statement with bound values as `safe_login`. Nothing you type is sent anywhere: no server, no network requests, no saving. It does not run the Python code itself; its results were checked against `sqli_demo` on 26 input pairs (52 checks, all matching), including errors like an unmatched quote.
 
 > **Local-only teaching project.** No server, network calls, external targets, accounts, packages, or persisted user database. Never copy `vulnerable_login` into a real application. Use this only on the bundled toy records.
 
@@ -18,19 +18,15 @@ A tiny, self-contained Python 3 + SQLite simulation for learning **why string-bu
 |---|---|
 | **What** | A toy login checked two ways: string-built SQL (vulnerable) vs. parameterized SQL (safe) |
 | **Stack** | Python 3.10+ standard library · `sqlite3` (in-memory) · `argparse` CLI · `unittest` |
-| **Preview** | HTML, CSS and vanilla JavaScript in [`docs/`](docs/), served by GitHub Pages |
+| **Simulator** | HTML, CSS, vanilla JavaScript and real SQLite ([sql.js](https://github.com/sql-js/sql.js), WebAssembly) in [`docs/`](docs/), served by GitHub Pages |
 | **Tests** | 7 automated tests (`python3 -m unittest discover -s tests -v`) |
 | **Data** | Two fictional users, recreated in memory on every run. No network, no real accounts |
 
-### Preview screenshots
+### Simulator screenshots
 
-| Normal login: both accept | Wrong password: both deny |
+| Wrong password: both deny | On a phone |
 |---|---|
-| ![Normal login: both checks accept alex](docs/screenshots/preview-normal.png) | ![Wrong password: both checks deny](docs/screenshots/preview-wrong-password.png) |
-
-**On a phone** (injection attempt selected):
-
-![Mobile view of the preview: scenario buttons, the vulnerable login accepting as admin, the parameterized login denying](docs/screenshots/preview-mobile.png)
+| ![Wrong password typed in: both logins deny](docs/screenshots/lab-desktop-wrong-password.png) | ![Mobile view of the simulator with an injection typed into the username box](docs/screenshots/lab-mobile-injection.png) |
 
 ## What you'll see
 
@@ -84,7 +80,7 @@ The tests check correct credentials, wrong credentials, bypass on the vulnerable
 
 ![Diagram: the vulnerable query lets the input close the string, add OR 1=1 and comment out the password check; the parameterized query binds the whole input as one value](docs/screenshots/diagram.png)
 
-**In short:** the vulnerable login pastes what you type *into* the SQL text, so a crafted username can rewrite the query. The parameterized login sends what you type *beside* the SQL as plain values, so the query's structure never changes and the password check always runs. Try it in the [live preview](https://acharyasudeekshith18-boop.github.io/sql-injection-demo/).
+**In short:** the vulnerable login pastes what you type *into* the SQL text, so a crafted username can rewrite the query. The parameterized login sends what you type *beside* the SQL as plain values, so the query's structure never changes and the password check always runs. Try it yourself in the [live simulator](https://acharyasudeekshith18-boop.github.io/sql-injection-demo/).
 
 The vulnerable path joins user input directly into SQL:
 
@@ -121,7 +117,9 @@ sqli_demo/auth.py       Vulnerable and parameterized queries
 sqli_demo/cli.py        Side-by-side demo and manual input CLI
 sqli_demo/__main__.py   python -m entry point
 tests/test_auth.py       Standard-library unittest suite
-docs/                    Interactive browser preview (GitHub Pages)
+docs/                    Interactive login simulator (GitHub Pages)
+docs/lab-core.js         Simulator logic: same table and queries as auth.py
+docs/vendor/             sql.js (SQLite as WebAssembly, MIT licence)
 docs/screenshots/        Screenshots used in this README
 ```
 
