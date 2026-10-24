@@ -3,161 +3,118 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SQL Injection Lab: Interactive Preview</title>
-<meta name="description" content="A safe, client-side visualization of a Python 3 + SQLite teaching project: the same toy login checked by a vulnerable string-built query and a parameterized query.">
-<meta name="theme-color" content="#0f172a">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; img-src 'self' data:; style-src 'self'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>SQL Injection Login Lab: try a toy login in real SQLite</title>
+<meta name="description" content="Hands-on toy login simulator. Type a username and password and watch a vulnerable SQL login and a parameterized login handle it in real SQLite, inside your browser.">
+<meta property="og:title" content="SQL Injection Login Lab">
+<meta property="og:description" content="Type a login, compare a vulnerable query with a parameterized one. Real SQLite in your browser, fictional users.">
 <link rel="icon" href="data:,">
+<link rel="apple-touch-icon" href="data:,">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<a class="skip" href="#lab">Skip to the demo</a>
-<header class="hero">
+<header class="top">
   <div class="wrap">
-    <p class="eyebrow">Python 3 · SQLite · 7 tests</p>
-    <h1>SQL Injection Lab</h1>
-    <p class="lead">One login form, two ways to check it. Pick a scenario and watch a <strong>string-built SQL query</strong> get tricked while a <strong>parameterized query</strong> stays safe.</p>
-    <div class="notice" role="note">
-      <strong>Safe, client-side visualization.</strong>
-      This page re-creates the behavior of the project's Python/SQLite command-line demo in JavaScript, right in your browser. It does not run the Python code, has no server or real database, and uses two fictional users only. The tested original runs locally with <code>python3 -m sqli_demo demo</code>.
-    </div>
-    <nav class="hero-links" aria-label="Project links">
-      <a class="btn btn-ghost" href="https://github.com/acharyasudeekshith18-boop/sql-injection-demo">Source code</a>
-      <a class="btn btn-ghost" href="https://github.com/acharyasudeekshith18-boop/sql-injection-demo#readme">README</a>
-      <a class="btn btn-ghost" href="https://github.com/acharyasudeekshith18-boop/sql-injection-demo/blob/main/sqli_demo/auth.py">auth.py</a>
-    </nav>
+    <h1>SQL Injection Login Lab</h1>
+    <p class="sub">Type a login. The same input goes to two versions of one login check, running in <strong>real SQLite</strong> inside your browser.</p>
+    <p class="warn" role="note"><span aria-hidden="true">⚠️</span> <strong>Fictional demo only. Don't enter real passwords.</strong> Nothing you type leaves this page: no server, no network requests, no saving.</p>
   </div>
 </header>
 
-<main>
-<section id="lab" class="wrap section" aria-labelledby="lab-title">
-  <h2 id="lab-title">Try a scenario</h2>
-  <p class="muted">No typing needed. Each button fills in the login for you, then runs both checks against the same two toy users.</p>
+<main class="wrap">
+  <section class="card login" aria-labelledby="login-h">
+    <div class="login-head">
+      <h2 id="login-h">Toy login</h2>
+      <span id="engine" class="engine loading">Loading SQLite…</span>
+    </div>
+    <form id="login-form" autocomplete="off" novalidate>
+      <label for="in-user">Username</label>
+      <input id="in-user" name="lab-user" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore placeholder="e.g. alex">
+      <label for="in-pass">Password <span class="hint">(shown as text; it's a toy)</span></label>
+      <input id="in-pass" name="lab-pass" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore placeholder="e.g. sunflower-7">
+      <div class="actions">
+        <button id="btn-run" type="submit" class="primary" disabled>Log in to both</button>
+        <button id="btn-reset" type="button" class="ghost">Reset</button>
+      </div>
+    </form>
+    <div class="examples">
+      <p class="ex-label">One-tap examples <span class="hint">(fill the boxes and run)</span></p>
+      <div class="chips" id="chips">
+        <button type="button" class="chip" data-u="alex" data-p="sunflower-7">Correct login</button>
+        <button type="button" class="chip" data-u="alex" data-p="not-the-password">Wrong password</button>
+        <button type="button" class="chip bad" data-u="' OR 1=1 -- " data-p="not-the-password">Injection: <code>' OR 1=1 -- </code></button>
+        <button type="button" class="chip bad" data-u="admin'-- " data-p="anything">Injection: <code>admin'-- </code></button>
+        <button type="button" class="chip" data-u="O'Brien" data-p="hello">Name with a quote</button>
+        <button type="button" class="chip" data-u="" data-p="">Empty</button>
+      </div>
+    </div>
+  </section>
 
-  <div class="scenarios" role="group" aria-label="Choose a scenario">
-    <button type="button" class="scenario" data-scenario="normal" aria-pressed="false"><span class="s-ico" aria-hidden="true">✓</span><span><b>Normal login</b><small>right username + password</small></span></button>
-    <button type="button" class="scenario" data-scenario="wrong" aria-pressed="false"><span class="s-ico" aria-hidden="true">✕</span><span><b>Wrong password</b><small>real user, bad password</small></span></button>
-    <button type="button" class="scenario" data-scenario="inject" aria-pressed="false"><span class="s-ico" aria-hidden="true">⚠</span><span><b>Injection attempt</b><small>crafted username, bad password</small></span></button>
-  </div>
-
-  <div class="card form-card" aria-live="polite">
-    <div class="field"><span class="label">Username</span><code id="in-user" class="input-box">pick a scenario</code></div>
-    <div class="field"><span class="label">Password</span><code id="in-pass" class="input-box">·</code></div>
-    <p id="scenario-note" class="scenario-note">Choose one of the three buttons above.</p>
-  </div>
-
-  <div class="compare">
-    <article class="card panel panel-bad" aria-labelledby="v-title">
+  <section id="results" class="results" aria-live="polite" hidden>
+    <article class="card panel vuln" aria-labelledby="v-h">
       <header class="panel-head">
-        <h3 id="v-title">Vulnerable login</h3>
-        <span class="tag tag-bad">string-built SQL</span>
+        <h2 id="v-h"><span class="tag tag-bad">Vulnerable</span> String-built SQL</h2>
+        <p class="panel-note">Your text is pasted <em>into</em> the query.</p>
       </header>
-      <p class="code-label">Query SQLite receives</p>
-      <pre class="sql" id="v-sql"><span class="dim">Waiting for a scenario…</span></pre>
-      <p class="legend"><span class="lg-u">underlined</span> = text from the login form · <span class="lg-c">--</span> = start of a comment SQLite ignores</p>
-      <p class="code-label">Row check</p>
-      <ul class="rows" id="v-rows"></ul>
-      <div class="result" id="v-result" data-state="idle">—</div>
-      <p class="why" id="v-why"></p>
+      <div id="v-verdict" class="verdict"></div>
+      <h3 class="mini">Query SQLite received</h3>
+      <pre class="sql" id="v-sql"></pre>
+      <p class="legend"><span class="lg lg-user">your text</span> <span class="lg lg-str">compared as text</span> <span class="lg lg-cmt">comment, ignored by SQLite</span></p>
+      <h3 class="mini">What the database did</h3>
+      <div id="v-explain" class="explain"></div>
     </article>
 
-    <article class="card panel panel-good" aria-labelledby="s-title">
+    <article class="card panel safe" aria-labelledby="s-h">
       <header class="panel-head">
-        <h3 id="s-title">Parameterized login</h3>
-        <span class="tag tag-good">bound values</span>
+        <h2 id="s-h"><span class="tag tag-good">Protected</span> Parameterized query</h2>
+        <p class="panel-note">Your text is sent <em>beside</em> the query, as values.</p>
       </header>
-      <p class="code-label">Query SQLite receives</p>
-      <pre class="sql" id="s-sql"><span class="dim">Waiting for a scenario…</span></pre>
-      <p class="code-label">Values bound separately</p>
-      <ul class="binds" id="s-binds"></ul>
-      <p class="code-label">Row check</p>
-      <ul class="rows" id="s-rows"></ul>
-      <div class="result" id="s-result" data-state="idle">—</div>
-      <p class="why" id="s-why"></p>
+      <div id="s-verdict" class="verdict"></div>
+      <h3 class="mini">Prepared statement (never changes)</h3>
+      <pre class="sql" id="s-sql"></pre>
+      <h3 class="mini">Values bound to the <code>?</code> slots</h3>
+      <dl class="binds">
+        <dt>1 · username</dt><dd id="s-b1"></dd>
+        <dt>2 · password</dt><dd id="s-b2"></dd>
+      </dl>
+      <h3 class="mini">What the database did</h3>
+      <div id="s-explain" class="explain"></div>
     </article>
-  </div>
+  </section>
 
-  <details class="card users">
-    <summary>The toy database (2 fictional users)</summary>
-    <table>
-      <caption class="sr-only">Seeded users in the in-memory database</caption>
-      <thead><tr><th scope="col">id</th><th scope="col">username</th><th scope="col">password</th></tr></thead>
-      <tbody><tr><td>1</td><td>admin</td><td>paper-crane-42</td></tr><tr><td>2</td><td>alex</td><td>sunflower-7</td></tr></tbody>
-    </table>
-    <p class="muted small">Made up for the lesson and recreated on every run. Plaintext only to keep the focus on SQL; real apps hash passwords.</p>
-  </details>
-</section>
+  <section class="card db" aria-labelledby="db-h">
+    <h2 id="db-h">The toy database</h2>
+    <p class="small">A <code>users</code> table with two fictional accounts, rebuilt fresh in memory for every attempt (same as the Python project). Rows a login returned are marked.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>id</th><th>username</th><th>password</th><th>returned to</th></tr></thead>
+        <tbody id="db-rows"><tr><td colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
 
-<section class="wrap section" aria-labelledby="diagram-title">
-  <h2 id="diagram-title">Why one accepts and the other rejects</h2>
-  <figure class="card diagram">
-    <div class="lane lane-bad">
-      <p class="lane-title">Vulnerable: input is pasted <em>into</em> the SQL</p>
-      <ol class="flow">
-        <li><span class="step">Input</span><code>username = <mark class="m-red" id="dg-payload"></mark></code></li>
-        <li><span class="step">SQL text built</span>
-          <code class="q">… WHERE username = '<mark class="m-red">'</mark> <mark class="m-amber">OR 1=1</mark> <mark class="m-grey">-- ' AND password = '…' LIMIT 1</mark></code>
-          <ul class="notes">
-            <li><b class="n n-red">1</b><span>The quote in the input <b>closes</b> the username string early.</span></li>
-            <li><b class="n n-amber">2</b><span><code>OR 1=1</code> is <b>always true</b>, so every row matches.</span></li>
-            <li><b class="n n-grey">3</b><span><code>-- </code> starts a <b>comment</b>: the password check is never read.</span></li>
-          </ul>
-        </li>
-        <li><span class="step">Result</span><span class="pill pill-bad">ACCEPTED as admin</span><small>the first row wins, with the wrong password</small></li>
-      </ol>
-    </div>
-    <div class="lane lane-good">
-      <p class="lane-title">Parameterized: input travels <em>beside</em> the SQL</p>
-      <ol class="flow">
-        <li><span class="step">Fixed SQL</span><code class="q">… WHERE username = <mark class="m-green">?</mark> AND password = <mark class="m-green">?</mark> LIMIT 1</code></li>
-        <li><span class="step">Values bound</span>
-          <code>? #1 ← <span class="val" id="dg-payload2"></span> <small>(one whole value)</small></code>
-          <ul class="notes">
-            <li><b class="n n-green">✓</b><span>The whole input is one plain <b>value</b>. Quotes and dashes are just characters.</span></li>
-            <li><b class="n n-green">✓</b><span>The query's structure can't change, so the password check always runs.</span></li>
-          </ul>
-        </li>
-        <li><span class="step">Result</span><span class="pill pill-good">DENIED</span><small>no user is literally named that</small></li>
-      </ol>
-    </div>
-    <figcaption>Same input, same toy database. The only difference is how the query is built.</figcaption>
-  </figure>
-</section>
+  <section class="card history" aria-labelledby="h-h" id="history-card" hidden>
+    <h2 id="h-h">Your attempts</h2>
+    <ol id="history" class="history-list"></ol>
+  </section>
 
-<section class="wrap section" aria-labelledby="run-title">
-  <h2 id="run-title">Run the real project</h2>
-  <div class="grid2">
-    <div class="card">
-      <h3>Demo</h3>
-      <p class="muted small">Python 3.10+, standard library only. From the project folder:</p>
-      <pre class="term"><span class="prompt">$</span> python3 -m sqli_demo demo</pre>
-      <pre class="term out">Vulnerable login: ACCEPTED as admin
-Parameterized login: DENIED</pre>
-    </div>
-    <div class="card">
-      <h3>Tests</h3>
-      <p class="muted small">Seven unit tests cover normal, wrong-password and injection cases for both paths.</p>
-      <pre class="term"><span class="prompt">$</span> python3 -m unittest discover -s tests -v</pre>
-      <pre class="term out">Ran 7 tests … OK</pre>
-    </div>
-  </div>
-  <div class="card stack">
-    <h3>Stack</h3>
-    <ul class="chips">
-      <li>Python 3</li><li>sqlite3 (in-memory)</li><li>argparse CLI</li><li>unittest</li><li>This preview: HTML, CSS, vanilla JS</li>
+  <section class="card why" aria-labelledby="why-h">
+    <h2 id="why-h">Why they behave differently</h2>
+    <ul>
+      <li><strong>Vulnerable:</strong> the login glues your text into the SQL. A <code>'</code> in your input ends the quoted value early, so whatever follows is read as SQL code. <code>OR 1=1</code> makes every row match, and <code>--</code> turns the rest of the line, including the password check, into a comment.</li>
+      <li><strong>Parameterized:</strong> the SQL is fixed, with <code>?</code> placeholders. SQLite receives your text separately as plain values, so a quote is just a character in a username and the password is always checked.</li>
+      <li>This lab keeps passwords as plain text only to keep the SQL easy to read. Real apps also need proper password hashing.</li>
     </ul>
-  </div>
-  <div class="cta-row">
-    <a class="btn btn-primary" href="https://github.com/acharyasudeekshith18-boop/sql-injection-demo">View the code on GitHub</a>
-    <a class="btn btn-ghost-dark" href="https://github.com/acharyasudeekshith18-boop/sql-injection-demo#readme">Read the README</a>
-  </div>
-</section>
+  </section>
 </main>
 
-<footer class="foot">
-  <div class="wrap">
-    <p>A local-only teaching project. No real logins, servers or targets. Use parameterized queries in real code, and never copy the vulnerable function into an app.</p>
-  </div>
+<footer class="foot wrap">
+  <p>Runs <a href="https://github.com/sql-js/sql.js">sql.js</a> (SQLite compiled to WebAssembly, MIT licence), bundled with this page, with the same table and queries as <a href="https://github.com/acharyasudeekshith18-boop/sql-injection-demo/blob/main/sqli_demo/auth.py"><code>sqli_demo/auth.py</code></a>. Local teaching toy only; no real target.</p>
+  <p><a href="https://github.com/acharyasudeekshith18-boop/sql-injection-demo">Source code and README on GitHub</a></p>
 </footer>
-<script src="script.js"></script>
+<script src="vendor/sql-wasm.js"></script>
+<script src="lab-core.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
