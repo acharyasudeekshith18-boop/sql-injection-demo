@@ -83,7 +83,7 @@ h3{font-size:1.1rem}
 .sql .tk-c{color:#94a3b8}
 .sql .tk-c .cm{color:#fbbf24;font-weight:700;font-style:normal}
 .sql .tk-c .cx{text-decoration:line-through;text-decoration-color:#64748b;font-style:italic;color:#7c8aa0}
-.sql mark.u{padding:0;background:rgba(248,113,113,.28);color:inherit;border-bottom:2px solid #f87171;border-radius:2px}
+.sql mark.u{padding:0;background:transparent;color:inherit;text-decoration:underline;text-decoration-color:#f87171;text-decoration-thickness:2px;text-underline-offset:4px}
 .sql .dim{color:#94a3b8}
 .rows,.binds{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .rows li,.binds li{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 10px;border-radius:8px;font-size:.92rem;border:1px solid var(--line);min-width:0}
@@ -124,7 +124,7 @@ body[data-scenario=inject] .panel-good .result[data-state=denied]{background:var
 mark{border-radius:4px;padding:0 3px}
 .m-red{background:#fecaca;color:#7f1d1d}
 .m-amber{background:#fde68a;color:#78350f}
-.m-grey{background:#e2e8f0;color:#64748b;text-decoration:line-through}
+.m-grey{background:#e2e8f0;color:#64748b;text-decoration:line-through;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .m-green{background:#bbf7d0;color:#14532d;font-weight:700}
 .notes{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:6px;font-size:.9rem}
 .notes li{display:flex;gap:8px;align-items:flex-start}
